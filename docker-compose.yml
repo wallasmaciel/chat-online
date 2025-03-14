@@ -6,6 +6,8 @@ services:
     ports:
       - 5672:5672
       - 15672:15672
+    networks:
+      - chat-online-network
   mongo:
     image: mongo
     restart: always
@@ -17,6 +19,8 @@ services:
     environment:
       MONGO_INITDB_ROOT_USERNAME: root
       MONGO_INITDB_ROOT_PASSWORD: root
+    networks:
+      - chat-online-network
   mongo-express:
     image: mongo-express
     restart: always
@@ -28,6 +32,33 @@ services:
       ME_CONFIG_MONGODB_URL: mongodb://root:root@mongo:27017/
     depends_on:
       - mongo
+    networks:
+      - chat-online-network
+  chat-online-back:
+    build:
+      context: .
+      dockerfile: ./back/Dockerfile
+    container_name: chat-online-back
+    ports:
+      - "8080:8080"
+    networks:
+      - chat-online-network
+    depends_on:
+      - mongo
+      - rabbitmq
+    restart: always
+  chat-online-front:
+    build:
+      context: .
+      dockerfile: ./front/Dockerfile
+    container_name: chat-online-front
+    ports:
+      - "5173:5173"
+    networks:
+      - chat-online-network
 volumes:
    mongodb:
    mongodb_config:
+networks:
+  chat-online-network:
+    driver: bridge
